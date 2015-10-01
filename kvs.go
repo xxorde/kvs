@@ -11,10 +11,10 @@ import (
 //	"net/http"
 )
 
-var counter = struct{
+var gmap = struct{
     sync.RWMutex
-    m map[string]int
-}{m: make(map[string]int)}
+    m map[string]string
+}{m: make(map[string]string)}
 
 func saveMap(file string, pats *map[string]string) {
 	f, err := os.Create(file)
@@ -45,12 +45,17 @@ func loadMap(file string) (pats *map[string]string) {
 	return pats
 }
 
-func writeValue(m map[string]string, key string, value string) {
-	m["key"]="value"
+func writeValue(key string, value string) {
+	gmap.Lock()
+	gmap.m[key] = value
+	gmap.Unlock()
 }
 
-func readValue(m map[string]string, key string) (value string) {
-	return m["key"]
+func readValue(key string) (value string) {
+	gmap.RLock()
+	value = gmap.m[key]
+	gmap.RUnlock()
+	return value
 }
 
 func worker (m *map[string]string) {
@@ -92,7 +97,7 @@ func main() {
 	fmt.Printf("Create %d key / value pairs\n", nKeys)
 	for i:=0; i < nKeys; i++ {
 		//m["key"+string(i)]="value"+string(i)
-		writeValue(m, "key"+string(i), "value"+string(i))
+		writeValue("key"+string(i), "value"+string(i))
 	}
 	fmt.Println("Time: ", time.Since(start),
 		"time per key: ", time.Since(start).Nanoseconds()/int64(nKeys), "ns")
@@ -103,7 +108,7 @@ func main() {
 	fmt.Printf("Do %d random writes\n", nRndWrites)
 	for i:=0; i < nRndWrites; i++ {
 		//m["key"+string(rand.Intn(nKeys))]="random write"+string(i)
-		writeValue(m, "key"+string(rand.Intn(nKeys)), "random write"+string(i))
+		writeValue("key"+string(rand.Intn(nKeys)), "random write"+string(i))
 	}
 	fmt.Println("Time: ", time.Since(start),
 	"time per write: ", time.Since(start).Nanoseconds()/int64(nRndWrites), "ns")
@@ -115,7 +120,7 @@ func main() {
 	tmp := ""
 	for i:=0; i < nRndReads; i++ {
 		//tmp = m["key"+string(rand.Intn(nKeys))]
-		tmp = readValue(m,"key"+string(rand.Intn(nKeys)))
+		tmp = readValue("key"+string(rand.Intn(nKeys)))
 	}
 	fmt.Println("Last value: ", tmp)
 	fmt.Println("Time: ", time.Since(start),
