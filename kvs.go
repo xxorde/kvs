@@ -81,7 +81,7 @@ func (s *Kvs) BackupBinGz(filename string) {
 func (s *Kvs) ExportBin(f io.Writer) {
 	s.Lock()
 	enc := gob.NewEncoder(f)
-	if err := enc.Encode(s.M); err != nil {
+	if err := enc.Encode(&s.M); err != nil {
 		panic("cant encode")
 	}
 	s.Unlock()
