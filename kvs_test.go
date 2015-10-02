@@ -45,7 +45,9 @@ func TestPutGet(t *testing.T) {
 }
 
 func TestPutGetTtl(t *testing.T) {
-	waitTime := time.Duration(1)*time.Second
+	// set wait time
+	waitInSeconds := 1
+	waitTime := time.Duration(waitInSeconds)*time.Second
 
 	// set ttl to n seconds
 	ttl := time.Now()
@@ -69,11 +71,12 @@ func TestPutGetTtl(t *testing.T) {
 	time.Sleep(waitTime)
 
 	// test if the values are absent!
+	empty := ""
 	tmp = ""
 	for _, c := range cases {
 		tmp = store.Get(c.key)
-		if c.value == tmp {
-			t.Errorf("Get(%q) == %q, should be: nil", c.key, tmp)
+		if tmp != empty  {
+			t.Errorf("Get(%q) == %q, should be empty", c.key, tmp)
 		}
 	}
 }
