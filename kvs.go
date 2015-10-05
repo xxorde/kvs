@@ -7,7 +7,7 @@ import (
 
 type Tupel struct {
 	Value string
-	Ttl time.Time
+	Ttl   int64
 }
 
 type Kvs struct {
@@ -36,33 +36,40 @@ func (s *Kvs) PutTtl(key string, value string, ttl time.Time) {
 	defer s.Unlock()
 	tmpTupel := s.M[key]
 	tmpTupel.Value = value
-	tmpTupel.Ttl = ttl
+	tmpTupel.Ttl = ttl.Unix()
 	s.M[key] = tmpTupel
 }
 
 func (s *Kvs) Put(key string, value string) {
-	var ttl time.Time
-	s.PutTtl(key, value, ttl)
+	s.Lock()
+	defer s.Unlock()
+	tmpTupel := s.M[key]
+	tmpTupel.Value = value
+	s.M[key] = tmpTupel
 }
 
-func (s *Kvs) Get(key string) (string) {
+func (s *Kvs) Get(key string) string {
 	s.RLock()
-	defer s.RUnlock()
 	tmpTupel := s.M[key]
 	tmpTtl := tmpTupel.Ttl
-	if tmpTtl.Second() == 0 {
+	if tmpTtl == 0 {
+		s.RUnlock()
 		return tmpTupel.Value
 	}
-	delta := tmpTtl.Sub(time.Now())
-	if(delta.Nanoseconds() > 0) {
+
+	if tmpTtl > time.Now().Unix() {
 		// Value is still valid
+		s.RUnlock()
 		return tmpTupel.Value
-	} else {
-		// delete the key
-		go s.Delete(key)
-		// return empty string, because the value is no longer valid
-		return ""
 	}
+
+	s.RUnlock()
+
+	// delete the key
+	go s.Delete(key)
+
+	// return empty string, because the value is no longer valid
+	return ""
 }
 
 func (s *Kvs) Delete(key string) {
@@ -71,9 +78,9 @@ func (s *Kvs) Delete(key string) {
 	delete(s.M, key)
 }
 
-func (s *Kvs) Exists(key string) (value bool) {
+func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
-	_, value = s.M[key]
+	_, exist = s.M[key]
 	s.RUnlock()
-	return value
+	return exist
 }
