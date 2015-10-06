@@ -20,9 +20,7 @@ type testcase struct {
 }
 
 var (
-	store Kvs
 	cases []testcase
-	line  string
 )
 
 func TestMain(m *testing.M) {
@@ -65,7 +63,7 @@ func TestPutGet(t *testing.T) {
 	// range over testcases
 	for _, tc := range cases {
 		// get new kvs
-		store = *NewKvs()
+		store := *NewKvs()
 
 		for _, c := range tc.kvs {
 			store.Put(c.key, c.value)
@@ -92,7 +90,7 @@ func TestPutGetTTL(t *testing.T) {
 		go func(tc testcase) {
 			defer wg.Done()
 			// get new kvs
-			store = *NewKvs()
+			store := *NewKvs()
 
 			// set wait time
 			waitInSeconds := 1

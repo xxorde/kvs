@@ -26,6 +26,8 @@ func NewKvs() *Kvs {
 
 // Len returns the number of stored tuples
 func (s *Kvs) Len() int {
+	s.RLock()
+	defer s.RUnlock()
 	return len(s.M)
 }
 
@@ -33,9 +35,7 @@ func (s *Kvs) Len() int {
 func (s *Kvs) PutTTL(key string, value string, ttl time.Time) {
 	s.Lock()
 	defer s.Unlock()
-	tmpTupel := s.M[key]
-	tmpTupel.Value = value
-	tmpTupel.TTL = ttl.Unix()
+	tmpTupel := Tupel{value, ttl.Unix()}
 	s.M[key] = tmpTupel
 }
 

@@ -1,6 +1,5 @@
 package kvs
 
-/*
 import (
 	"bytes"
 	"testing"
@@ -9,8 +8,13 @@ import (
 func TestJSON(t *testing.T) {
 	// range over testcases
 	for _, tc := range cases {
+		// check if json sample is available
+		if tc.json == "" {
+			continue
+		}
+
 		// get new kvs
-		store = *NewKvs()
+		store := *NewKvs()
 
 		// insert testcase
 		for _, c := range tc.kvs {
@@ -77,9 +81,8 @@ func TestImportYaml(t *testing.T) {
 		for _, c := range tc.kvs {
 			tmp = store.Get(c.key)
 			if c.value != tmp {
-				t.Errorf("Get(%q) == %q, should be: %q", c.key, tmp, c.value)
+				t.Errorf("Get(%q) == %q, should be: %d", c.key, tmp, c.value)
 			}
 		}
 	}
 }
-*/
