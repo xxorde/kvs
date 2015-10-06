@@ -5,8 +5,6 @@ import (
 	"os"
 	"testing"
 	"time"
-	//	"math/rand"
-	//	"strconv"
 )
 
 type testtupel struct {
@@ -42,7 +40,7 @@ Hack: [the Planet,]
 Hack2: [Planetthe Planetthe Planet,]
 Hello: [Welt,]
 key: [value,]`,
-			"{\n \"M\": {\n  \"Hack\": {\n   \"Value\": \"the Planet\",\n   \"Ttl\": 0\n  },\n  \"Hack2\": {\n   \"Value\": \"Planetthe Planetthe Planet\",\n   \"Ttl\": 0\n  },\n  \"Hello\": {\n   \"Value\": \"Welt\",\n   \"Ttl\": 0\n  },\n  \"key\": {\n   \"Value\": \"value\",\n   \"Ttl\": 0\n  }\n }\n}",
+			"{\n \"M\": {\n  \"Hack\": {\n   \"Value\": \"the Planet\",\n   \"TTL\": 0\n  },\n  \"Hack2\": {\n   \"Value\": \"Planetthe Planetthe Planet\",\n   \"TTL\": 0\n  },\n  \"Hello\": {\n   \"Value\": \"Welt\",\n   \"TTL\": 0\n  },\n  \"key\": {\n   \"Value\": \"value\",\n   \"TTL\": 0\n  }\n }\n}",
 		},
 		testcase{
 			[]testtupel{
@@ -56,11 +54,10 @@ key: [value,]`,
 2: [222,]
 3: [333,]
 4: [444,]`,
-			"{\n \"M\": {\n  \"1\": {\n   \"Value\": \"111\",\n   \"Ttl\": 0\n  },\n  \"2\": {\n   \"Value\": \"222\",\n   \"Ttl\": 0\n  },\n  \"3\": {\n   \"Value\": \"333\",\n   \"Ttl\": 0\n  },\n  \"4\": {\n   \"Value\": \"444\",\n   \"Ttl\": 0\n  }\n }\n}",
+			"{\n \"M\": {\n  \"1\": {\n   \"Value\": \"111\",\n   \"TTL\": 0\n  },\n  \"2\": {\n   \"Value\": \"222\",\n   \"TTL\": 0\n  },\n  \"3\": {\n   \"Value\": \"333\",\n   \"TTL\": 0\n  },\n  \"4\": {\n   \"Value\": \"444\",\n   \"TTL\": 0\n  }\n }\n}",
 		},
 	}
 
-	line = "===================================="
 	os.Exit(m.Run())
 }
 
@@ -83,7 +80,7 @@ func TestPutGet(t *testing.T) {
 	}
 }
 
-func TestPutGetTtl(t *testing.T) {
+func TestPutGetTTL(t *testing.T) {
 	// range over testcases
 	for _, tc := range cases {
 		// get new kvs
@@ -99,7 +96,7 @@ func TestPutGetTtl(t *testing.T) {
 
 		// store values with ttl
 		for _, c := range tc.kvs {
-			store.PutTtl(c.key, c.value, ttl)
+			store.PutTTL(c.key, c.value, ttl)
 		}
 
 		//fmt.Println(store.JSON())

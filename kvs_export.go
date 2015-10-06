@@ -36,7 +36,7 @@ func (s *Kvs) DumpYaml(w io.Writer) {
 	// iterate over the sorted keys
 	for _, k := range keys {
 		value := s.M[k].Value
-		ttl := s.M[k].Ttl
+		ttl := s.M[k].TTL
 
 		yaml += "\n" + k + ": [" + value + ","
 		if ttl != 0 {
@@ -138,7 +138,7 @@ func (t *Tupel) parseYaml(line string) (key string) {
 		if err != nil {
 			panic(err)
 		}
-		t.Ttl = ttli
+		t.TTL = ttli
 	}
 	return key
 }

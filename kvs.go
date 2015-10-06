@@ -8,7 +8,7 @@ import (
 // Tupel is the type stored in the kvs
 type Tupel struct {
 	Value string
-	Ttl   int64
+	TTL   int64
 }
 
 // Kvs is the key value store
@@ -35,13 +35,13 @@ func (s *Kvs) Len() int {
 	return len(s.M)
 }
 
-// PutTtl stores a key/value pair with an time to live, ttl.
-func (s *Kvs) PutTtl(key string, value string, ttl time.Time) {
+// PutTTL stores a key/value pair with an time to live, ttl.
+func (s *Kvs) PutTTL(key string, value string, ttl time.Time) {
 	s.Lock()
 	defer s.Unlock()
 	tmpTupel := s.M[key]
 	tmpTupel.Value = value
-	tmpTupel.Ttl = ttl.Unix()
+	tmpTupel.TTL = ttl.Unix()
 	s.M[key] = tmpTupel
 }
 
@@ -58,13 +58,13 @@ func (s *Kvs) Put(key string, value string) {
 func (s *Kvs) Get(key string) string {
 	s.RLock()
 	tmpTupel := s.M[key]
-	tmpTtl := tmpTupel.Ttl
-	if tmpTtl == 0 {
+	tmpTTL := tmpTupel.TTL
+	if tmpTTL == 0 {
 		s.RUnlock()
 		return tmpTupel.Value
 	}
 
-	if tmpTtl > time.Now().Unix() {
+	if tmpTTL > time.Now().Unix() {
 		// Value is still valid
 		s.RUnlock()
 		return tmpTupel.Value
