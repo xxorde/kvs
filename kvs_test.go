@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 	"fmt"
-//	"bytes"
+	"bytes"
 //	"math/rand"
 //	"strconv"
 )
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 key: [value,]
 Hello: [Welt,]
 Hack: [the Planet,]
-Hack2: [the Planetthe Planetthe Planetthe Planetthe Planetthe Planet,]`,
+Hack2: [Planetthe Planetthe Planet,]`,
 			"{\n \"M\": {\n  \"Hack\": {\n   \"Value\": \"the Planet\",\n   \"Ttl\": 0\n  },\n  \"Hack2\": {\n   \"Value\": \"Planetthe Planetthe Planet\",\n   \"Ttl\": 0\n  },\n  \"Hello\": {\n   \"Value\": \"Welt\",\n   \"Ttl\": 0\n  },\n  \"key\": {\n   \"Value\": \"value\",\n   \"Ttl\": 0\n  }\n }\n}",
 		},
 		testcase{
@@ -108,6 +108,9 @@ func TestPutGetTtl(t *testing.T) {
 			store.PutTtl(c.key,c.value,ttl)
 		}
 
+		//fmt.Println(store.Json())
+		//fmt.Println(store.Yaml())
+
 		// the values should still be there!
 		tmp := ""
 		for _, c := range tc.kvs {
@@ -145,31 +148,41 @@ func TestJson(t *testing.T) {
 
 		// test if json matches testcase
 		if store.Json() != tc.json {
-			t.Errorf("json does not match testcase:\n %q\n !=\n%q", store.Json(), tc.json)
+			t.Errorf("json does not match testcase:\n%q\n !=\n%q", store.Json(), tc.json)
 		}
 
 		//fmt.Println(store.Json())
 	}
 }
-/*
+
 func TestYaml(t *testing.T) {
-	store = *NewKvs()
-	TestPutGet(t)
-	fmt.Println("TestYaml")
-	fmt.Println(store.Yaml())
-	fmt.Println()
-	fmt.Println(line)
+	// range over testcases
+	for _, tc := range cases {
+		store := *NewKvs()
+		for _, c := range tc.kvs {
+			store.Put(c.key,c.value)
+		}
+		if store.Yaml() != tc.yaml {
+			t.Errorf("yaml does not match testcase:\n%q\n !=\n%q", store.Yaml(), tc.yaml)
+		}
+	}
 }
 
 func TestDumpYaml(t *testing.T) {
-	store = *NewKvs()
-	TestPutGet(t)
-	fmt.Println("TestDumpYaml")
-	store.DumpYaml(os.Stdout)
-	fmt.Println()
-	fmt.Println(line)
+	// range over testcases
+	for _, tc := range cases {
+		store := *NewKvs()
+		for _, c := range tc.kvs {
+			store.Put(c.key,c.value)
+		}
+		buf := new(bytes.Buffer)
+		store.DumpYaml(buf)
+		if buf.String() != tc.yaml {
+			t.Errorf("DumpYaml does not match testcase:\n%q\n !=\n%q", buf, tc.yaml)
+		}
+	}
 }
-
+/*
 func TestImportYaml(t *testing.T) {
 	fmt.Println("TestImportYaml")
 	store = *NewKvs()
