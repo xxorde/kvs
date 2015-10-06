@@ -5,16 +5,19 @@ import (
 	"time"
 )
 
+// Tupel is the type stored in the kvs
 type Tupel struct {
 	Value string
 	Ttl   int64
 }
 
+// Kvs is the key value store
 type Kvs struct {
 	sync.RWMutex
 	M map[string]Tupel
 }
 
+// NewKvs is the constuctor, creating a new Kvs instance
 func NewKvs() *Kvs {
 	kvs := new(Kvs)
 	kvs.M = make(map[string]Tupel)
@@ -27,10 +30,12 @@ func (s *Kvs) init(){
 }
 */
 
+// Len returns the number of stored tuples
 func (s *Kvs) Len() int {
 	return len(s.M)
 }
 
+// PutTtl stores a key/value pair with an time to live, ttl.
 func (s *Kvs) PutTtl(key string, value string, ttl time.Time) {
 	s.Lock()
 	defer s.Unlock()
@@ -40,6 +45,7 @@ func (s *Kvs) PutTtl(key string, value string, ttl time.Time) {
 	s.M[key] = tmpTupel
 }
 
+// Put stores a key/value pair.
 func (s *Kvs) Put(key string, value string) {
 	s.Lock()
 	defer s.Unlock()
@@ -48,6 +54,7 @@ func (s *Kvs) Put(key string, value string) {
 	s.M[key] = tmpTupel
 }
 
+// Get returns the value for a key
 func (s *Kvs) Get(key string) string {
 	s.RLock()
 	tmpTupel := s.M[key]
@@ -63,6 +70,7 @@ func (s *Kvs) Get(key string) string {
 		return tmpTupel.Value
 	}
 
+	// RUnlock must be called before the delete
 	s.RUnlock()
 
 	// delete the key
@@ -72,12 +80,14 @@ func (s *Kvs) Get(key string) string {
 	return ""
 }
 
+// Delete removes value with given key
 func (s *Kvs) Delete(key string) {
 	s.Lock()
-	defer s.Unlock()
+	s.Unlock()
 	delete(s.M, key)
 }
 
+// Exists tests if given key hast a value
 func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
 	_, exist = s.M[key]

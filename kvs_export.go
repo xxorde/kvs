@@ -1,11 +1,11 @@
 package kvs
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
-	"bytes"
-	"bufio"
-	"fmt"
+	"sort"
 	"strconv"
 )
 
@@ -13,21 +13,32 @@ func (s *Kvs) String() (str string) {
 	return s.Yaml()
 }
 
+// Yaml exports kvs as simple yaml file.
 func (s *Kvs) Yaml() (yaml string) {
 	buf := new(bytes.Buffer)
 	s.DumpYaml(buf)
 	return buf.String()
 }
 
-func (s *Kvs) DumpYaml(w io.Writer){
+// DumpYaml writes kvs as simple yaml to a io.Writer
+func (s *Kvs) DumpYaml(w io.Writer) {
 	yaml := "---"
 	s.RLock()
 	defer s.RUnlock()
-	for key := range s.M {
-		value := s.M[key].Value
-		ttl := s.M[key].Ttl
 
-		yaml += "\n"+key+": ["+value+","
+	// get all keys and sort them
+	var keys []string
+	for k := range s.M {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// iterate over the sorted keys
+	for _, k := range keys {
+		value := s.M[k].Value
+		ttl := s.M[k].Ttl
+
+		yaml += "\n" + k + ": [" + value + ","
 		if ttl != 0 {
 			yaml += strconv.FormatInt(ttl, 10)
 		}
@@ -37,7 +48,7 @@ func (s *Kvs) DumpYaml(w io.Writer){
 	}
 }
 
-func (t *Tupel) parseYaml(line string) (key string){
+func (t *Tupel) parseYaml(line string) (key string) {
 	pointer := 0
 	value := ""
 	ttl := ""
@@ -103,7 +114,7 @@ func (t *Tupel) parseYaml(line string) (key string){
 
 	// remove spaces
 	for ; pointer < len(line); pointer++ {
-		if line[pointer] == ' ' || line[pointer] == ' ' {
+		if line[pointer] == ' ' || line[pointer] == '\t' {
 			continue
 		} else {
 			break
@@ -132,9 +143,10 @@ func (t *Tupel) parseYaml(line string) (key string){
 	return key
 }
 
-func (s *Kvs) ImportYaml(r io.Reader){
-//	var noTime time.Time
-//	yaml := "---"
+// ImportYaml reads kvs as simple yaml from a io.Reader
+func (s *Kvs) ImportYaml(r io.Reader) {
+	//	var noTime time.Time
+	//	yaml := "---"
 	s.Lock()
 	defer s.Unlock()
 	var newStore Kvs
@@ -162,7 +174,6 @@ func (s *Kvs) ImportYaml(r io.Reader){
 		if key != "" {
 			s.M[key] = tmpTupel
 		}
-		fmt.Println("k:",key,"v:",tmpTupel.Value,"ttl:",tmpTupel.Ttl)
 	}
 	if err := scanner.Err(); err != nil {
 		panic(err)
@@ -170,7 +181,8 @@ func (s *Kvs) ImportYaml(r io.Reader){
 	s = &newStore
 }
 
-func (s *Kvs) Json() (string){
+// JSON exports kvs as json file.
+func (s *Kvs) JSON() string {
 	s.RLock()
 	defer s.RUnlock()
 	b, err := json.MarshalIndent(s, "", " ")
