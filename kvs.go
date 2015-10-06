@@ -24,12 +24,6 @@ func NewKvs() *Kvs {
 	return kvs
 }
 
-/*
-func (s *Kvs) init(){
-	s.M = make(map[string]string)
-}
-*/
-
 // Len returns the number of stored tuples
 func (s *Kvs) Len() int {
 	return len(s.M)
@@ -49,32 +43,29 @@ func (s *Kvs) PutTTL(key string, value string, ttl time.Time) {
 func (s *Kvs) Put(key string, value string) {
 	s.Lock()
 	defer s.Unlock()
-	tmpTupel := s.M[key]
-	tmpTupel.Value = value
+	tmpTupel := Tupel{value, 0}
 	s.M[key] = tmpTupel
 }
 
 // Get returns the value for a key
-func (s *Kvs) Get(key string) string {
+func (s *Kvs) Get(key string) (value string) {
+	// RUnlock must be called before the delete, defer not possible
 	s.RLock()
 	tmpTupel := s.M[key]
-	tmpTTL := tmpTupel.TTL
-	if tmpTTL == 0 {
+	if tmpTupel.TTL == 0 {
 		s.RUnlock()
 		return tmpTupel.Value
 	}
 
-	if tmpTTL > time.Now().Unix() {
+	if tmpTupel.TTL > time.Now().Unix() {
 		// Value is still valid
 		s.RUnlock()
 		return tmpTupel.Value
 	}
 
-	// RUnlock must be called before the delete
+	// unlock and delete the key
 	s.RUnlock()
-
-	// delete the key
-	go s.Delete(key)
+	s.Delete(key)
 
 	// return empty string, because the value is no longer valid
 	return ""
@@ -83,14 +74,14 @@ func (s *Kvs) Get(key string) string {
 // Delete removes value with given key
 func (s *Kvs) Delete(key string) {
 	s.Lock()
-	s.Unlock()
+	defer s.Unlock()
 	delete(s.M, key)
 }
 
 // Exists tests if given key hast a value
 func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
+	defer s.RUnlock()
 	_, exist = s.M[key]
-	s.RUnlock()
 	return exist
 }
