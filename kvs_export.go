@@ -28,15 +28,15 @@ func (s *Kvs) DumpYaml(w io.Writer) {
 
 	// get all keys and sort them
 	var keys []string
-	for k := range s.M {
+	for k := range s.values {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
 	// iterate over the sorted keys
 	for _, k := range keys {
-		value := s.M[k].Value
-		ttl := s.M[k].TTL
+		value := s.values[k].Value
+		ttl := s.values[k].TTL
 
 		yaml += "\n" + k + ": [" + value + ","
 		if ttl != 0 {
@@ -172,7 +172,7 @@ func (s *Kvs) ImportYaml(r io.Reader) {
 		var tmpTupel Tupel
 		key := tmpTupel.parseYaml(line)
 		if key != "" {
-			s.M[key] = tmpTupel
+			s.values[key] = tmpTupel
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -182,12 +182,12 @@ func (s *Kvs) ImportYaml(r io.Reader) {
 }
 
 // JSON exports kvs as json file.
-func (s *Kvs) JSON() string {
+func (s *Kvs) JSON() (jsonOutput string) {
 	s.RLock()
 	defer s.RUnlock()
-	b, err := json.MarshalIndent(s, "", " ")
+	bytes, err := json.MarshalIndent(s.values, "", " ")
 	if err != nil {
-		panic("error json.MarshalIndent(s)")
+		panic("error json.valuesarshalIndent(s)")
 	}
-	return string(b)
+	return string(bytes)
 }

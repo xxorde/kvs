@@ -38,7 +38,7 @@ Hack: [the Planet,]
 Hack2: [Planetthe Planetthe Planet,]
 Hello: [Welt,]
 key: [value,]`,
-			"{\n \"M\": {\n  \"Hack\": {\n   \"Value\": \"the Planet\",\n   \"TTL\": 0\n  },\n  \"Hack2\": {\n   \"Value\": \"Planetthe Planetthe Planet\",\n   \"TTL\": 0\n  },\n  \"Hello\": {\n   \"Value\": \"Welt\",\n   \"TTL\": 0\n  },\n  \"key\": {\n   \"Value\": \"value\",\n   \"TTL\": 0\n  }\n }\n}",
+			"{\n \"Hack\": {\n  \"Value\": \"the Planet\",\n  \"TTL\": 0\n },\n \"Hack2\": {\n  \"Value\": \"Planetthe Planetthe Planet\",\n  \"TTL\": 0\n },\n \"Hello\": {\n  \"Value\": \"Welt\",\n  \"TTL\": 0\n },\n \"key\": {\n  \"Value\": \"value\",\n  \"TTL\": 0\n }\n}",
 		},
 		testcase{
 			[]testtupel{
@@ -52,7 +52,7 @@ key: [value,]`,
 2: [222,]
 3: [333,]
 4: [444,]`,
-			"{\n \"M\": {\n  \"1\": {\n   \"Value\": \"111\",\n   \"TTL\": 0\n  },\n  \"2\": {\n   \"Value\": \"222\",\n   \"TTL\": 0\n  },\n  \"3\": {\n   \"Value\": \"333\",\n   \"TTL\": 0\n  },\n  \"4\": {\n   \"Value\": \"444\",\n   \"TTL\": 0\n  }\n }\n}",
+			"{\n \"1\": {\n  \"Value\": \"111\",\n  \"TTL\": 0\n },\n \"2\": {\n  \"Value\": \"222\",\n  \"TTL\": 0\n },\n \"3\": {\n  \"Value\": \"333\",\n  \"TTL\": 0\n },\n \"4\": {\n  \"Value\": \"444\",\n  \"TTL\": 0\n }\n}",
 		},
 	}
 
