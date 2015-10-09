@@ -48,7 +48,7 @@ func (s *Kvs) DumpYaml(w io.Writer) {
 	}
 }
 
-func (t *Tupel) parseYaml(line string) (key string) {
+func (t *Tuple) parseYaml(line string) (key string) {
 	pointer := 0
 	value := ""
 	ttl := ""
@@ -169,10 +169,10 @@ func (s *Kvs) ImportYaml(r io.Reader) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		var tmpTupel Tupel
-		key := tmpTupel.parseYaml(line)
+		var tmpTuple Tuple
+		key := tmpTuple.parseYaml(line)
 		if key != "" {
-			s.values[key] = tmpTupel
+			s.values[key] = tmpTuple
 		}
 	}
 	if err := scanner.Err(); err != nil {

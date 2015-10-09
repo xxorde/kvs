@@ -1,6 +1,31 @@
 // 2015 Alexander Sosna <alexander@xxor.de>
 
-// Package kvs is a simple key value store
+// Package kvs is a simple key value store for concurrent usage.
+// It is designed to store values of the type Tuple.
+//
+// Get a new key value store:
+//    store := kvs.NewKvs()
+//
+// Store a value for key:
+//    store.Put("key1", "value1")
+//
+// Get value for a key:
+//    store.Get("key1")
+//
+// Output data as yaml:
+//    store.Yaml()
+//
+// Output data as json:
+//    store.JSON()
+//
+// Write data as yaml to an io.Writer:
+//    store.DumpYaml(io.Writer)
+//
+// Write import yaml from an io.Reader:
+//    store.ImportYaml(io.Reader)
+//
+// The functions Yaml() and JSON() will create the export data in memory.
+// If you are planing to export much data or have limited memory you should use DumpYaml(io.Writer).
 package kvs
 
 import (
@@ -8,26 +33,33 @@ import (
 	"time"
 )
 
-// Tupel is the type stored in the kvs
-type Tupel struct {
+// Tuple is the type stored in the kvs.
+// The payload is the string Value.
+// With TTL can the lifespan be limited.
+// It holds a Unix epoch (seconds), if these time is reached, the payload is invalid.
+// If TTL is not set (value 0) the payload is always valid.
+type Tuple struct {
 	Value string
 	TTL   int64
 }
 
 // Kvs is the key value store
+// It holds an RWMutex to protect the data for concurrent usage and a map.
+// The map called values, contains the actual payload as values of type Tuples.
 type Kvs struct {
 	sync.RWMutex
-	values map[string]Tupel
+	values map[string]Tuple
 }
 
 // NewKvs is the constuctor, creating a new Kvs instance
 func NewKvs() *Kvs {
 	kvs := new(Kvs)
-	kvs.values = make(map[string]Tupel)
+	kvs.values = make(map[string]Tuple)
 	return kvs
 }
 
 // Len returns the number of stored tuples
+// It is not guarantied that all values are still valid and not end of life.
 func (s *Kvs) Len() int {
 	s.RLock()
 	defer s.RUnlock()
@@ -38,39 +70,34 @@ func (s *Kvs) Len() int {
 func (s *Kvs) PutTTL(key string, value string, ttl time.Time) {
 	s.Lock()
 	defer s.Unlock()
-	tmpTupel := Tupel{value, ttl.Unix()}
-	s.values[key] = tmpTupel
+	tmpTuple := Tuple{value, ttl.Unix()}
+	s.values[key] = tmpTuple
 }
 
 // Put stores a key/value pair.
 func (s *Kvs) Put(key string, value string) {
 	s.Lock()
 	defer s.Unlock()
-	tmpTupel := Tupel{value, 0}
-	s.values[key] = tmpTupel
+	tmpTuple := Tuple{value, 0}
+	s.values[key] = tmpTuple
 }
 
-// Get returns the value for a key
+// Get returns the value for a given key
 func (s *Kvs) Get(key string) (value string) {
-	// RUnlock must be called before the delete, defer not possible
+	// Get a read lock
+	// defer s.RUnlock() is not possible, because one code path has to call a delete after the unlock
 	s.RLock()
-	tmpTupel := s.values[key]
-	if tmpTupel.TTL == 0 {
-		s.RUnlock()
-		return tmpTupel.Value
+	defer s.RUnlock()
+	tmpTuple := s.values[key]
+
+	// If the tuple is valid unlock the mutex and return the value
+	if tmpTuple.valid() {
+		//s.RUnlock()
+		return tmpTuple.Value
 	}
 
-	if tmpTupel.TTL > time.Now().Unix() {
-		// Value is still valid
-		s.RUnlock()
-		return tmpTupel.Value
-	}
-
-	// unlock and delete the key
-	s.RUnlock()
-	s.Delete(key)
-
-	// return empty string, because the value is no longer valid
+	// The Tuple is not valid, return empty string and delete Tuple (when possible)
+	go s.Delete(key)
 	return ""
 }
 
@@ -85,6 +112,16 @@ func (s *Kvs) Delete(key string) {
 func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
 	defer s.RUnlock()
-	_, exist = s.values[key]
-	return exist
+	tmpTupel, exist := s.values[key]
+	return tmpTupel.valid()
+}
+
+// valid tests if given key hast a valid tuple
+func (t *Tuple) valid() (valid bool) {
+	// If the tuple has no TTL or it is in the future return true
+	if t.TTL == 0 || t.TTL > time.Now().Unix() {
+		return true
+	}
+	// The TTL is in the past, return false
+	return false
 }
