@@ -12,6 +12,9 @@
 // Get value for a key:
 //    store.Get("key1")
 //
+// Test if value exists for given key:
+//    store.Exists("key")
+//
 // Output data as yaml:
 //    store.Yaml()
 //
@@ -46,19 +49,37 @@ type Tuple struct {
 // Kvs is the key value store
 // It holds an RWMutex to protect the data for concurrent usage and a map.
 // The map called values, contains the actual payload as values of type Tuples.
+// dirty is an upper boundary on how many non permanent tuples are stored.
 type Kvs struct {
 	sync.RWMutex
-	values map[string]Tuple
+	values                map[string]Tuple
+	LastVacuum            time.Time
+	dirtyUpperLimit       int64
+	AutoVacuumEnabled     bool
+	AutoVacuumNaptime     time.Duration
+	AutoVacuumThreshold   int64
+	AutoVacuumScaleFactor float64
 }
 
-// NewKvs is the constuctor, creating a new Kvs instance
+// NewKvs is the constuctor, creating a new Kvs instance.
 func NewKvs() *Kvs {
 	kvs := new(Kvs)
 	kvs.values = make(map[string]Tuple)
+	// Enable autoVacuum
+	kvs.AutoVacuumEnabled = true
+	// Activate autoVacuum every 10 Minutes
+	kvs.AutoVacuumNaptime = 10 * time.Minute
+	// Threshold for max tupel with TTL before triggering Vacuum
+	kvs.AutoVacuumThreshold = 100
+	// Rate of kvs that could be filled with non permanent tuples, before
+	// autoVacuum triggers a Vacuum run.
+	kvs.AutoVacuumScaleFactor = 0.2
+	// Start autoVacuum (worker process)
+	go kvs.autoVacuum()
 	return kvs
 }
 
-// Len returns the number of stored tuples
+// Len returns the number of stored tuples.
 // It is not guarantied that all values are still valid and not end of life.
 func (s *Kvs) Len() int {
 	s.RLock()
@@ -70,8 +91,11 @@ func (s *Kvs) Len() int {
 func (s *Kvs) PutTTL(key string, value string, ttl time.Time) {
 	s.Lock()
 	defer s.Unlock()
+	// Create an new tuple, set values and add it to the kvs.
 	tmpTuple := Tuple{value, ttl.Unix()}
 	s.values[key] = tmpTuple
+	// Increment the dirty counter
+	s.dirtyUpperLimit++
 }
 
 // Put stores a key/value pair.
@@ -96,7 +120,7 @@ func (s *Kvs) Get(key string) (value string) {
 		return tmpTuple.Value
 	}
 
-	// The Tuple is not valid, return empty string and delete Tuple (when possible)
+	// The Tuple is not valid, return empty string and delete Tuple (new go routine)
 	go s.Delete(key)
 	return ""
 }
@@ -108,7 +132,7 @@ func (s *Kvs) Delete(key string) {
 	delete(s.values, key)
 }
 
-// Exists tests if given key hast a value
+// Exists tests if given key hast a value and it it is valid
 func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
 	defer s.RUnlock()

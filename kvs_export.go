@@ -21,6 +21,7 @@ func (s *Kvs) Yaml() (yaml string) {
 }
 
 // DumpYaml writes kvs as simple yaml to a io.Writer
+// Expired (invalid) keys are not automatically removed!
 func (s *Kvs) DumpYaml(w io.Writer) {
 	yaml := "---"
 	s.RLock()
