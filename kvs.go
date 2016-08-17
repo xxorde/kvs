@@ -109,14 +109,12 @@ func (s *Kvs) Put(key string, value string) {
 // Get returns the value for a given key
 func (s *Kvs) Get(key string) (value string) {
 	// Get a read lock
-	// defer s.RUnlock() is not possible, because one code path has to call a delete after the unlock
 	s.RLock()
 	defer s.RUnlock()
 	tmpTuple := s.values[key]
 
 	// If the tuple is valid unlock the mutex and return the value
 	if tmpTuple.valid() {
-		//s.RUnlock()
 		return tmpTuple.Value
 	}
 
@@ -132,11 +130,15 @@ func (s *Kvs) Delete(key string) {
 	delete(s.values, key)
 }
 
-// Exists tests if given key hast a value and it it is valid
+// Exists tests if given key hast a value and if it is valid
 func (s *Kvs) Exists(key string) (exist bool) {
 	s.RLock()
 	defer s.RUnlock()
 	tmpTupel, exist := s.values[key]
+	// The tuple does not exists => return false
+	if exist == false || tmpTupel.Value == "" {
+		return false
+	}
 	return tmpTupel.valid()
 }
 
