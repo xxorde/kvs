@@ -27,6 +27,7 @@ func (s *Kvs) Vacuum() {
 	}
 	s.dirtyUpperLimit = dirty
 	s.LastVacuum = time.Now()
+	s.VacuumCount++
 }
 
 // autoVacuum periodically calls Vacuum() if it estimates that the kvs

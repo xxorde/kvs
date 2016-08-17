@@ -54,6 +54,7 @@ type Kvs struct {
 	sync.RWMutex
 	values                map[string]Tuple
 	LastVacuum            time.Time
+	VacuumCount           int64
 	dirtyUpperLimit       int64
 	AutoVacuumEnabled     bool
 	AutoVacuumNaptime     time.Duration
