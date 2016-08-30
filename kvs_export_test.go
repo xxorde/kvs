@@ -81,7 +81,7 @@ func TestImportYaml(t *testing.T) {
 		for _, c := range tc.kvs {
 			tmp = store.Get(c.key)
 			if c.value != tmp {
-				t.Errorf("Get(%q) == %q, should be: %d", c.key, tmp, c.value)
+				t.Errorf("Get(%q) == %q, should be: %s", c.key, tmp, c.value)
 			}
 		}
 	}
