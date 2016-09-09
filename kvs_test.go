@@ -26,7 +26,7 @@ var (
 func TestMain(m *testing.M) {
 	// global testcases
 	cases = []testcase{
-		testcase{
+		{
 			[]testtupel{
 				{"key", "value", 0},
 				{"Hello", "Welt", 0},
@@ -40,7 +40,7 @@ Hello: [Welt,]
 key: [value,]`,
 			"{\n \"Hack\": {\n  \"Value\": \"the Planet\",\n  \"TTL\": 0\n },\n \"Hack2\": {\n  \"Value\": \"Planetthe Planetthe Planet\",\n  \"TTL\": 0\n },\n \"Hello\": {\n  \"Value\": \"Welt\",\n  \"TTL\": 0\n },\n \"key\": {\n  \"Value\": \"value\",\n  \"TTL\": 0\n }\n}",
 		},
-		testcase{
+		{
 			[]testtupel{
 				{"1", "111", 0},
 				{"2", "222", 0},
