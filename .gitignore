@@ -1,3 +1,5 @@
 *.~
 *.dump
 *.bin
+*.swo
+*.swp

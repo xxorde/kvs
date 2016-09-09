@@ -71,7 +71,7 @@ func NewKvs() *Kvs {
 	// Activate autoVacuum every 10 Minutes
 	kvs.AutoVacuumNaptime = 10 * time.Minute
 	// Threshold for max tupel with TTL before triggering Vacuum
-	kvs.AutoVacuumThreshold = 100
+	kvs.AutoVacuumThreshold = 1000
 	// Rate of kvs that could be filled with non permanent tuples, before
 	// autoVacuum triggers a Vacuum run.
 	kvs.AutoVacuumScaleFactor = 0.2

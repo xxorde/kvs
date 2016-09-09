@@ -31,7 +31,7 @@ func (s *Kvs) Vacuum() {
 }
 
 // autoVacuum periodically calls Vacuum() if it estimates that the kvs
-// contains to many dead tuple.
+// contains too many dead tuple.
 func (s *Kvs) autoVacuum() {
 	time.Sleep(s.AutoVacuumNaptime)
 	if s.dirtyUpperLimit > s.AutoVacuumThreshold &&
